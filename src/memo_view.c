@@ -8,17 +8,17 @@ typedef struct{
 	Evas_Object *naviframe;
 	Elm_Object_Item *naviframe_item;
 
-	Evas_Object			*start_datetime;
-	Evas_Object *layout;
-	Evas_Object *genlist;
-	Evas_Object			*start_date_btn;
-	Evas_Object			*date_time_popup;
+	Evas_Object			*date;
+	Evas_Object 		*layout;
+	Evas_Object 		*genlist;
+	Evas_Object			*date_btn;
+	Evas_Object			*date_popup;
 
 	char *title_entry;
 	char *description_entry;
 
 	Elm_Object_Item *genlist_description_item;
-	Elm_Object_Item		*genlist_from_item;
+	Elm_Object_Item		*genlist_date_item;
 
 	struct tm			stm;
 
@@ -30,13 +30,14 @@ enum _ENTRY_TYPE {
     LOCATION_ENTRY,
     DESCRIPTION_ENTRY
 };
-typedef enum _ENTRY_TYPE ENTRY_TYPE;
+
 /*these were in the config.h*/
+typedef enum _ENTRY_TYPE ENTRY_TYPE;
 static const char *TITLE                = "Title";
 static const char *TITLE_HINT           = "Enter the title";
 static const char *DESCRIPTION          = "Description";
 static const char *DESCRIPTION_HINT     = "Enter the description";
-static const char *FROM                 = "From";
+static const char *DATE                 = "Date";
 static const char *CANCEL				= "Cancel";
 static const char *SET					= "Set";
 #define FORMAT_BUFFER                   128
@@ -46,8 +47,8 @@ static const char *SET					= "Set";
 #define DATE_TIME_BUF_LEN               64
 #define ENTRY_SPACER_WIDTH              32
 #define ENTRY_MIN_HEIGHT                140
-#define BUTTON_DATE_WIDTH               240
-#define BUTTON_HEIGHT                   80
+#define BUTTON_DATE_WIDTH               150//240
+#define BUTTON_HEIGHT                   30//80
 #define BOX_PADDING                     10
 
 #define ELM_ENTRY_MIN_HEIGHT ELM_SCALE_SIZE(ENTRY_MIN_HEIGHT)
@@ -85,45 +86,18 @@ const int get_system_font_size()
 
 static bool _close_active_popup(create_view_data *view_data)
 {
-	//RETVM_IF(!view_data, false, "view_data is NULL");
 
-//	if (view_data->reminder_ctxpopup) {
-//		evas_object_del(view_data->reminder_ctxpopup);
-//		view_data->reminder_ctxpopup = NULL;
-//	} else if (view_data->sensitivity_ctxpopup) {
-//		evas_object_del(view_data->sensitivity_ctxpopup);
-//		view_data->sensitivity_ctxpopup = NULL;
-//	} else if (view_data->priority_ctxpopup) {
-//		evas_object_del(view_data->priority_ctxpopup);
-//		view_data->priority_ctxpopup = NULL;
-//	} else if (view_data->status_ctxpopup) {
-//		evas_object_del(view_data->status_ctxpopup);
-//		view_data->status_ctxpopup = NULL;
-//	} else if (view_data->popup) {
-//		evas_object_del(view_data->popup);
-//		view_data->popup = NULL;
-//	} else if (view_data->date_time_popup) {
-//		Evas_Object *obj = elm_object_content_get(view_data->date_time_popup);
-//		elm_object_content_unset(view_data->date_time_popup);
-//		evas_object_hide(obj);
-//		evas_object_del(view_data->date_time_popup);
-//		view_data->date_time_popup = NULL;
-//	} else {
-//		return false;
-//	}
-
-	if (view_data->date_time_popup) {
-		Evas_Object *obj = elm_object_content_get(view_data->date_time_popup);
-		elm_object_content_unset(view_data->date_time_popup);
+	if (view_data->date_popup) {
+		Evas_Object *obj = elm_object_content_get(view_data->date_popup);
+		elm_object_content_unset(view_data->date_popup);
 		evas_object_hide(obj);
-		evas_object_del(view_data->date_time_popup);
-		view_data->date_time_popup = NULL;
+		evas_object_del(view_data->date_popup);
+		view_data->date_popup = NULL;
 	} else {
 		return false;
 	}
 	return true;
 }
-
 
 static Evas_Object *_prepare_entry_box (create_view_data *item_data, const char *name, const char *hint, Evas_Smart_Cb func){
 	create_view_data *data = (create_view_data *)item_data;
@@ -134,12 +108,13 @@ static Evas_Object *_prepare_entry_box (create_view_data *item_data, const char 
 	evas_object_show(box);
 
 	Evas_Object *rect1 = evas_object_rectangle_add(box);
-	evas_object_color_set(rect1,0,0,0,0);
+	evas_object_color_set(rect1,210,48,130,0);
+	//evas_object_size_hint_min_set(rect1,ELM_ENTRY_SPACER_WIDTH,ELM_ENTRY_MIN_HEIGHT);
 	evas_object_size_hint_min_set(rect1,ELM_ENTRY_SPACER_WIDTH,ELM_ENTRY_MIN_HEIGHT);
 	evas_object_show(rect1);
 
 	Evas_Object *rect2 = evas_object_rectangle_add(box);
-	evas_object_color_set(rect2,0,0,0,0);
+	evas_object_color_set(rect2,231,161,176,0);
 	evas_object_size_hint_min_set(rect2,ELM_ENTRY_SPACER_WIDTH,ELM_ENTRY_MIN_HEIGHT);
 	evas_object_show(rect2);
 
@@ -228,18 +203,18 @@ Evas_Object *ui_utils_layout_add(Evas_Object *parent, Evas_Object_Event_Cb destr
 	return layout;
 }
 
-static char *_start_datetime_label_cb(void *data, Evas_Object *obj, const char *part)
+static char *_date_label_cb(void *data, Evas_Object *obj, const char *part)
 {
 	char buffer[FORMAT_BUFFER] = {0};
-	snprintf(buffer, sizeof(buffer) - 1, LABEL_FORMAT, get_system_font_size(), FROM);
+	snprintf(buffer, sizeof(buffer) - 1, LABEL_FORMAT, get_system_font_size(), DATE);
 	return strdup(buffer);
 }
 
-static Evas_Object *_date_time_popup_add(Evas_Object *parent, create_view_data *view,
+static Evas_Object *_date_popup_add(Evas_Object *parent, create_view_data *view,
 										Evas_Smart_Cb set_cb, Evas_Smart_Cb cancel_cb)
 {
 	Evas_Object *popup = elm_popup_add(parent);
-	view->date_time_popup = popup;
+	view->date_popup = popup;
 
 	elm_popup_orient_set(popup, ELM_POPUP_ORIENT_CENTER);
 	evas_object_show(popup);
@@ -258,26 +233,23 @@ static Evas_Object *_date_time_popup_add(Evas_Object *parent, create_view_data *
 
 	return popup;
 }
-////////////
-static void _on_datetime_popup_set_cb(void *data, Evas_Object *obj, void *event_info)
+
+static void _on_date_popup_set_cb(void *data, Evas_Object *obj, void *event_info)
 {
 	//RETM_IF(!data, "data is null");
 	create_view_data *view = (create_view_data *)data;
 
 	Elm_Object_Item *selected_item = elm_genlist_selected_item_get(view->genlist);
 
-	if (selected_item == view->genlist_from_item) {
-		elm_datetime_value_get(view->start_datetime, &view->stm);
+	if (selected_item == view->genlist_date_item) {
+		elm_datetime_value_get(view->date, &view->stm);
 		_close_active_popup(view);
-	} /*else if (selected_item == view->genlist_to_item) {
-		elm_datetime_value_get(view->end_datetime, &view->etm);
-		_close_active_popup(view);
-	}*/
+	}
 	elm_genlist_item_update(selected_item);
 }
 
 
-static void _on_datetime_popup_cancel_cb(void *data, Evas_Object *obj, void *event_info)
+static void _on_date_popup_cancel_cb(void *data, Evas_Object *obj, void *event_info)
 {
 	//RETM_IF(!data, "data is null");
 	create_view_data *view = data;
@@ -286,36 +258,34 @@ static void _on_datetime_popup_cancel_cb(void *data, Evas_Object *obj, void *eve
 }
 
 
-static void _get_start_datetime(create_view_data *view, Evas_Object *parent, const char *format)
+static void _get_date(create_view_data *view, Evas_Object *parent, const char *format)
 {
-	if (!view->start_datetime) {
-		view->start_datetime = elm_datetime_add(parent);
-		evas_object_size_hint_weight_set(view->start_datetime, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-		evas_object_size_hint_align_set(view->start_datetime, EVAS_HINT_FILL, EVAS_HINT_FILL);
+	if (!view->date) {
+		view->date = elm_datetime_add(parent);
+		evas_object_size_hint_weight_set(view->date, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+		evas_object_size_hint_align_set(view->date, EVAS_HINT_FILL, EVAS_HINT_FILL);
 	}
 
-	elm_datetime_value_set(view->start_datetime, &view->stm);
-	elm_datetime_format_set(view->start_datetime, format);
-	evas_object_show(view->start_datetime);
+	elm_datetime_value_set(view->date, &view->stm);
+	elm_datetime_format_set(view->date, format);
+	evas_object_show(view->date);
 }
 
 
-static void _start_date_btn_cb(void *data, Evas_Object* obj, void *event_info)
+static void _date_btn_cb(void *data, Evas_Object* obj, void *event_info)
 {
 	//RETM_IF(!data, "data is null");
 	create_view_data *view = (create_view_data *)data;
-//Cb들 해결할것
-	//Evas_Object *popup = _date_time_popup_add(view->win->win, view, _on_datetime_popup_set_cb, _on_datetime_popup_cancel_cb);
-	//그냥 네비프레임으로해보자->됨
-	Evas_Object *popup = _date_time_popup_add(view->naviframe, view, _on_datetime_popup_set_cb,_on_datetime_popup_cancel_cb);
+
+	Evas_Object *popup = _date_popup_add(view->naviframe, view, _on_date_popup_set_cb,_on_date_popup_cancel_cb);
 	evas_object_show(popup);
 
-	_get_start_datetime(view, popup, "%d %b %Y");
+	_get_date(view, popup, "%d %b %Y");
 
-	elm_object_content_set(popup, view->start_datetime);
+	elm_object_content_set(popup, view->date);
 }
 
-static Evas_Object *_start_datetime_content_cb(void *item_data, Evas_Object *obj, const char *part)
+static Evas_Object *_date_content_cb(void *item_data, Evas_Object *obj, const char *part)
 {
 	//RETVM_IF(!item_data, NULL, "Passed NULL input data");
 	create_view_data *data = (create_view_data *)item_data;
@@ -327,30 +297,18 @@ static Evas_Object *_start_datetime_content_cb(void *item_data, Evas_Object *obj
 		elm_box_align_set(box, 0.0, 0.5);
 		evas_object_show(box);
 
-		data->start_date_btn = elm_button_add(box);
-		evas_object_show(data->start_date_btn);
-		evas_object_smart_callback_add(data->start_date_btn, "clicked", _start_date_btn_cb, data);
+		data->date_btn = elm_button_add(box);
+		evas_object_show(data->date_btn);
+		evas_object_smart_callback_add(data->date_btn, "clicked", _date_btn_cb, data);
 
 		char buf[DATE_TIME_BUF_LEN] = {0};
 		strftime(buf, DATE_TIME_BUF_LEN, "%x", &data->stm);
-		elm_object_text_set(data->start_date_btn, buf);
+		elm_object_text_set(data->date_btn, buf);
 
-		evas_object_size_hint_weight_set(data->start_date_btn, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-		evas_object_size_hint_min_set(data->start_date_btn, ELM_BUTTON_DATE_WIDTH, ELM_BUTTON_HEIGHT);
-		elm_box_pack_end(box, data->start_date_btn);
+		evas_object_size_hint_weight_set(data->date_btn, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+		evas_object_size_hint_min_set(data->date_btn, ELM_BUTTON_DATE_WIDTH, ELM_BUTTON_HEIGHT);
+		elm_box_pack_end(box, data->date_btn);
 
-		//우리는 start_time은 필요가 없으니까
-//		if (!data->is_allday) {
-//			data->start_time_btn = elm_button_add(box);
-//			evas_object_show(data->start_time_btn);
-//			evas_object_smart_callback_add(data->start_time_btn, "clicked", _start_time_btn_cb, data);
-//
-//			strftime(buf, DATE_TIME_BUF_LEN, "%R", &data->stm);
-//			elm_object_text_set(data->start_time_btn, buf);
-//			evas_object_size_hint_weight_set(data->start_time_btn, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-//			evas_object_size_hint_min_set(data->start_time_btn, ELM_BUTTON_TIME_WIDTH, ELM_BUTTON_HEIGHT);
-//			elm_box_pack_end(box, data->start_time_btn);
-//		}
 
 		return box;
 	}
@@ -359,7 +317,6 @@ static Evas_Object *_start_datetime_content_cb(void *item_data, Evas_Object *obj
 }
 
 static Evas_Object *_title_content_cb(void *item_data,Evas_Object *obj, const char *part){
-	//Evas_Object *nf = (Evas_Object *)item_data;
 
 	create_view_data * data = (create_view_data*)item_data;
 
@@ -376,10 +333,10 @@ static Evas_Object *_description_content_cb(void *item_data, Evas_Object *obj, c
 
 static void genlist_items_append(create_view_data *data){
 
-	static Elm_Genlist_Item_Class itc_from = {
+	static Elm_Genlist_Item_Class itc_date = {
 		.item_style = "default",
-		.func.text_get = _start_datetime_label_cb,
-		.func.content_get = _start_datetime_content_cb,
+		.func.text_get = _date_label_cb,
+		.func.content_get = _date_content_cb,
 	};
 	static Elm_Genlist_Item_Class itc_title = {
 		.item_style = "full",
@@ -391,8 +348,8 @@ static void genlist_items_append(create_view_data *data){
 		.func.content_get = _description_content_cb,
 	};
 
-	data->genlist_from_item =
-			elm_genlist_item_append(data->genlist, &itc_from, data, NULL, ELM_GENLIST_ITEM_NONE, NULL, data);
+	data->genlist_date_item =
+			elm_genlist_item_append(data->genlist, &itc_date, data, NULL, ELM_GENLIST_ITEM_NONE, NULL, data);
 	elm_genlist_item_append(data->genlist, &itc_title, data, NULL, ELM_GENLIST_ITEM_NONE, NULL, data);
 	data->genlist_description_item =
 			elm_genlist_item_append(data->genlist, &itc_description, data, NULL, ELM_GENLIST_ITEM_NONE, NULL, data);
@@ -463,44 +420,6 @@ memo_view_cb(void *nf, Evas_Object *obj, void *event_info){
 	evas_object_smart_callback_add(btn, "clicked", btn_back_cb, data->naviframe);
 	elm_object_item_part_content_set(data->naviframe_item, "title_right_btn", btn);
 
-	//box = elm_box_add(scroller);
-//	box = elm_box_add(data->layout);
-//	evas_object_size_hint_weight_set(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-//	evas_object_size_hint_align_set(box, EVAS_HINT_FILL, EVAS_HINT_FILL);
-//	elm_object_content_set(data->layout,box);
-//
-//	/*icon_reorder style*/
-//	btn = elm_button_add(box);
-//	elm_object_style_set(btn, "icon_reorder");
-//	evas_object_smart_callback_add(btn, "clicked", btn_back_cb, data->naviframe);
-//	evas_object_show(btn);
-//	elm_box_pack_end(box, btn);
-//
-//	/*Label*/
-//	label = elm_label_add(box);
-//	elm_object_text_set(label, "<align=center>Title</align>");
-//	evas_object_size_hint_weight_set(label, EVAS_HINT_EXPAND, 0);
-//	evas_object_size_hint_align_set(label, EVAS_HINT_FILL, EVAS_HINT_FILL);
-//	evas_object_show(label);
-//	elm_box_pack_end(box, label);
-//
-//	/*Bg-1*/
-//	Evas_Object *bg = elm_bg_add(box);
-//	elm_bg_color_set(bg,170,220,255);
-//	evas_object_size_hint_weight_set(bg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-//	evas_object_size_hint_align_set(bg, EVAS_HINT_FILL, EVAS_HINT_FILL);
-//	evas_object_show(bg);
-//	elm_box_pack_end(box,bg);
-//
-//
-//	/*Entry-1*/
-//	Evas_Object *entry = elm_entry_add(box);
-//	//elm_entry_multiple_line_set(entry,EINA_TRUE);
-//	elm_object_part_text_set(entry, "elm.guide", "Input Title");
-//	evas_object_size_hint_weight_set(entry, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-//	evas_object_size_hint_align_set(entry, EVAS_HINT_FILL, EVAS_HINT_FILL);
-//	evas_object_show(entry);
-//	elm_box_pack_end(box, entry);
 
 	/* Create genlist for Events control */
 	genlist_add(data);
