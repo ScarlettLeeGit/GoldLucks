@@ -27,7 +27,6 @@ typedef struct{
 
 enum _ENTRY_TYPE {
     TITLE_ENTRY,
-    LOCATION_ENTRY,
     DESCRIPTION_ENTRY
 };
 
@@ -46,10 +45,20 @@ static const char *SET					= "Set";
 #define STYLE_FORMAT                    "DEFAULT='font_size=%d'"
 #define DATE_TIME_BUF_LEN               64
 #define ENTRY_SPACER_WIDTH              32
-#define ENTRY_MIN_HEIGHT                140
-#define BUTTON_DATE_WIDTH               150//240
+#define ENTRY_MIN_HEIGHT                200//140
+#define BUTTON_DATE_WIDTH               140//240
 #define BUTTON_HEIGHT                   30//80
 #define BOX_PADDING                     10
+
+#define ENTRY_SPACER_WIDTH1              10//32
+#define ENTRY_MIN_HEIGHT1                50//140
+#define ELM_ENTRY_MIN_HEIGHT1 ELM_SCALE_SIZE(ENTRY_MIN_HEIGHT1)
+#define ELM_ENTRY_SPACER_WIDTH1 ELM_SCALE_SIZE(ENTRY_SPACER_WIDTH1)
+
+#define ENTRY_SPACER_WIDTH2				190
+#define ENTRY_MIN_HEIGHT2                40
+#define ELM_ENTRY_MIN_HEIGHT2 ELM_SCALE_SIZE(ENTRY_MIN_HEIGHT2)
+#define ELM_ENTRY_SPACER_WIDTH2 ELM_SCALE_SIZE(ENTRY_SPACER_WIDTH2)
 
 #define ELM_ENTRY_MIN_HEIGHT ELM_SCALE_SIZE(ENTRY_MIN_HEIGHT)
 #define ELM_ENTRY_SPACER_WIDTH ELM_SCALE_SIZE(ENTRY_SPACER_WIDTH)
@@ -57,8 +66,8 @@ static const char *SET					= "Set";
 #define ELM_BUTTON_HEIGHT ELM_SCALE_SIZE(BUTTON_HEIGHT)
 #define ELM_BUTTON_DATE_WIDTH ELM_SCALE_SIZE(BUTTON_DATE_WIDTH)
 #define ELM_BOX_PADDING ELM_SCALE_SIZE(BOX_PADDING)
-#define TEXT_ITEM_DEFAULT_SIZE          40
-#define TEXT_MAX_GOOD_SIZE              60
+#define TEXT_ITEM_DEFAULT_SIZE          35//40
+#define TEXT_MAX_GOOD_SIZE              55//60
 #define SUBJECT_CHAR_LIMIT              100
 #define SUBJECT_BYTE_LIMIT              256
 
@@ -99,23 +108,23 @@ static bool _close_active_popup(create_view_data *view_data)
 	return true;
 }
 
-static Evas_Object *_prepare_entry_box (create_view_data *item_data, const char *name, const char *hint, Evas_Smart_Cb func){
+static Evas_Object *_prepare_title_entry_box (create_view_data *item_data, const char *name, const char *hint, Evas_Smart_Cb func){
 	create_view_data *data = (create_view_data *)item_data;
+
 
 	Evas_Object *box = elm_box_add(data->genlist);
 	elm_box_horizontal_set(box, EINA_TRUE);
-	evas_object_size_hint_min_set(box,0,ELM_ENTRY_MIN_HEIGHT);
+	evas_object_size_hint_min_set(box,0,ELM_ENTRY_MIN_HEIGHT1);
 	evas_object_show(box);
 
 	Evas_Object *rect1 = evas_object_rectangle_add(box);
 	evas_object_color_set(rect1,210,48,130,0);
-	//evas_object_size_hint_min_set(rect1,ELM_ENTRY_SPACER_WIDTH,ELM_ENTRY_MIN_HEIGHT);
-	evas_object_size_hint_min_set(rect1,ELM_ENTRY_SPACER_WIDTH,ELM_ENTRY_MIN_HEIGHT);
+	evas_object_size_hint_min_set(rect1,ELM_ENTRY_SPACER_WIDTH1,ELM_ENTRY_MIN_HEIGHT1);
 	evas_object_show(rect1);
 
 	Evas_Object *rect2 = evas_object_rectangle_add(box);
 	evas_object_color_set(rect2,231,161,176,0);
-	evas_object_size_hint_min_set(rect2,ELM_ENTRY_SPACER_WIDTH,ELM_ENTRY_MIN_HEIGHT);
+	evas_object_size_hint_min_set(rect2,ELM_ENTRY_SPACER_WIDTH1,ELM_ENTRY_MIN_HEIGHT1);
 	evas_object_show(rect2);
 
 	Evas_Object *label = elm_label_add(box);
@@ -125,7 +134,7 @@ static Evas_Object *_prepare_entry_box (create_view_data *item_data, const char 
 	evas_object_show(label);
 
 	Evas_Object *entry = elm_entry_add(box);
-	elm_entry_single_line_set(entry,EINA_FALSE);
+	elm_entry_single_line_set(entry,EINA_TRUE);
 	elm_entry_scrollable_set(entry,EINA_TRUE);
 	elm_scroller_policy_set(entry,ELM_SCROLLER_POLICY_OFF,ELM_SCROLLER_POLICY_AUTO);
 	snprintf(buffer,sizeof(buffer)-1,STYLE_FORMAT,get_system_font_size());
@@ -152,6 +161,66 @@ static Evas_Object *_prepare_entry_box (create_view_data *item_data, const char 
 
 }
 
+static Evas_Object *_prepare_entry_box (create_view_data *item_data, const char *name, const char *hint, Evas_Smart_Cb func){
+	create_view_data *data = (create_view_data *)item_data;
+
+	Evas_Object *box1 = elm_box_add(data->genlist);
+	elm_box_horizontal_set(box1, EINA_FALSE);
+	evas_object_size_hint_min_set(box1,0,ELM_ENTRY_MIN_HEIGHT);
+	evas_object_show(box1);
+
+	Evas_Object *box2 = elm_box_add(box1);
+	elm_box_horizontal_set(box2, EINA_TRUE);
+	evas_object_size_hint_min_set(box2, 0, ELM_ENTRY_MIN_HEIGHT1);
+	evas_object_show(box2);
+
+	Evas_Object *rect1 = evas_object_rectangle_add(box2);
+	evas_object_color_set(rect1,210,48,130,0);
+	evas_object_size_hint_min_set(rect1,ELM_ENTRY_SPACER_WIDTH1,ELM_ENTRY_MIN_HEIGHT2);
+	evas_object_show(rect1);
+
+	Evas_Object *rect2 = evas_object_rectangle_add(box2);
+	evas_object_color_set(rect2,231,161,176,0);
+	evas_object_size_hint_min_set(rect2,ELM_ENTRY_SPACER_WIDTH2,ELM_ENTRY_MIN_HEIGHT2);
+	evas_object_show(rect2);
+
+	Evas_Object *label = elm_label_add(box2);
+	char buffer [FORMAT_BUFFER]={0};
+	snprintf(buffer,sizeof(buffer)-1,ENTRY_LABEL_FORMAT,get_system_font_size(),name);
+	elm_object_text_set(label, buffer);
+	evas_object_show(label);
+
+	//elm_box_pack_end(box2, rect1);
+	elm_box_pack_end(box2, label);
+	elm_box_pack_end(box2, rect2);
+
+	Evas_Object *entry = elm_entry_add(box1);
+	elm_entry_single_line_set(entry,EINA_FALSE);
+	elm_entry_scrollable_set(entry,EINA_TRUE);
+	elm_scroller_policy_set(entry,ELM_SCROLLER_POLICY_OFF,ELM_SCROLLER_POLICY_AUTO);
+	snprintf(buffer,sizeof(buffer)-1,STYLE_FORMAT,get_system_font_size());
+	elm_entry_text_style_user_push(entry,buffer);
+	Elm_Entry_Filter_Limit_Size limit = {SUBJECT_CHAR_LIMIT,SUBJECT_BYTE_LIMIT};
+	elm_entry_markup_filter_append(entry,elm_entry_filter_limit_size,&limit);
+	elm_entry_cursor_end_set(entry);
+	elm_entry_cnp_mode_set(entry,ELM_CNP_MODE_PLAINTEXT);
+
+	evas_object_size_hint_weight_set(entry, EVAS_HINT_EXPAND,EVAS_HINT_EXPAND);
+	evas_object_size_hint_align_set(entry,EVAS_HINT_FILL,EVAS_HINT_FILL);
+
+	snprintf(buffer,sizeof(buffer)-1,LABEL_FORMAT,get_system_font_size(),hint);
+	elm_object_part_text_set(entry,"elm.guide",buffer);
+	evas_object_smart_callback_add(entry,"changed",func,data);
+	evas_object_show(entry);
+
+	elm_box_pack_end(box1,box2);
+	elm_box_pack_end(box1,entry);
+
+	return box1;
+
+}
+
+
 static void _title_entry_changed_cb(void *data,Evas_Object *obj,void *event_info){
 	create_view_data *ad = (create_view_data *)data;
 	if(ad->title_entry != NULL){
@@ -175,7 +244,7 @@ static Evas_Object *_entry_add(create_view_data *data, ENTRY_TYPE entry_type){
 	Evas_Object *box = NULL;
 	switch(entry_type){
 	case TITLE_ENTRY:
-		box = _prepare_entry_box(data,TITLE,TITLE_HINT,_title_entry_changed_cb);
+		box = _prepare_title_entry_box(data,TITLE,TITLE_HINT,_title_entry_changed_cb);
 		break;
 	case DESCRIPTION_ENTRY:
 		box = _prepare_entry_box(data, DESCRIPTION, DESCRIPTION_HINT,_description_entry_changed_cb);
@@ -315,6 +384,7 @@ static Evas_Object *_date_content_cb(void *item_data, Evas_Object *obj, const ch
 
 	return NULL;
 }
+
 
 static Evas_Object *_title_content_cb(void *item_data,Evas_Object *obj, const char *part){
 
