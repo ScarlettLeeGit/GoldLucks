@@ -1,4 +1,4 @@
-#SmallMemo
+#Sample_webSQL
 
 This is a code from here: https://developer.tizen.org/development/tutorials/web-application/w3chtml5supplementary-features/storage/web-sql-database#create_a
 
